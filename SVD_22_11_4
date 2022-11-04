@@ -1,1 +1,52 @@
-
+X1 = pd.read_hdf(test_cite_path).drop(columns=constant_cols)
+X1 = svd.fit_transform(X1)
+print(f'After Applying the SVD Test Data Size : {X1.size*4/1024/1024/1024:2.3f} GByte')
+del X1
+gc.collect()
+​
+# %% [markdown]
+# #### **I N T E R P R E T A T I O N :** 🧬
+# 
+# * Now As you clearly see the results. When we reduce the size of the data by using Dimensionality Reduction it reduces from 5.515 Gbytes --> 0.135 Gbytes in TRAIN DATA.
+# * In TEST DATA: it Reduces from 3.781 Gbytes --> 0.093 Gbytes.
+​
+# %% [markdown]
+# <br>
+# 
+# <a id="section-5.1"></a>
+# 
+# <h1 style="font-family: Verdana; font-size: 20px; font-style: normal; font-weight: bold; text-decoration: none; text-transform: none; letter-spacing: 1px; background-color: #ffffff; color: #03045e;" id="imports">&nbsp;&nbsp;EXPLORATION IN CITEseq Test Data &nbsp;&nbsp;&nbsp;&nbsp;<a href="#toc">&#10514;</a></h1>
+# 
+# 
+# * Now we check test data of hdf5 file in CITEseq Technology.
+​
+# %% [code] {"execution":{"iopub.status.busy":"2022-10-28T12:27:19.447704Z","iopub.status.idle":"2022-10-28T12:27:19.44814Z","shell.execute_reply.started":"2022-10-28T12:27:19.447934Z","shell.execute_reply":"2022-10-28T12:27:19.447954Z"},"jupyter":{"outputs_hidden":false}}
+test_hdf_cite = pd.read_hdf(test_cite_path)
+print_info(test_hdf_cite,'Test HDF Input Data')
+​
+# %% [markdown]
+# #### **I N T E R P R E T A T I O N :** 🧬
+# 
+# * The dataset is too big, which can crash the RAM, because if we clearly look into the data of only CITEseq technology and only training data. it contains 22050 features 48663 instances. It is too big
+# * The data is type float32 which says that it has 32 bits and 4 bytes, because 1 byte = 8 bits. so approx it's size is in GBS.
+# * As you take a clear look on the dataset, most of the data in the table have zero.
+# * we can drop those data which are fully zero and most of them zero, because this kind of data create a sparse matrix.
+​
+# %% [markdown]
+# <br>
+# 
+# <a id="section-5.2"></a>
+# 
+# <h1 style="font-family: Verdana; font-size: 20px; font-style: normal; font-weight: bold; text-decoration: none; text-transform: none; letter-spacing: 1px; background-color: #ffffff; color: #03045e;" id="imports">&nbsp;&nbsp;DATA LEAKAGE &nbsp;&nbsp;&nbsp;&nbsp;<a href="#toc">&#10514;</a></h1>
+# 
+# 
+# * The Data Leakage is first discussed here : [CITEseq data: same RNA expression matrices from different donors in day2?](https://www.kaggle.com/competitions/open-problems-multimodal/discussion/347890) by @gwentea. 
+# * It is noticed on other discussions: [Data contamination between CITEseq train/test datasets?](https://www.kaggle.com/competitions/open-problems-multimodal/discussion/349833) by @A_GI.
+# * Also : [Leak in public test set](https://www.kaggle.com/competitions/open-problems-multimodal/discussion/349867) by @Silogram.
+# * gwentea explained that while splitting the CITEseq RNA expression data by day-donor, It is being noticed that day2-donor32606 from train_cite_inputs.h5 and day2-donor27678 from test_cite_inputs.h5 had the same number of cells(7476). It got two separate expression matrices from these two donors but they seem to present the same gene expression patterns even if they were extracted from different files (32606 from train and 27678 from test data) with different barcode information.
+# * It means that the unseen data which is test data, it's first 7476 rows are same as train's first 7476 rows. which means the information is exposed in the terms of security.
+# * These rows belong to the public test set; the private leaderboard is not affected.
+# * we can use assert function to confirm the above statement.
+​
+# %% [markdown]
+# ####
